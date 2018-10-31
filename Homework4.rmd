@@ -1,0 +1,12 @@
+---
+title: "Homework4"
+author: "Devin Nelson"
+date: "10/31/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Practice. 
