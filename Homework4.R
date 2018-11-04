@@ -8,6 +8,8 @@ library(knitr)
 library(forcats)
 library(readr)
 library(tidyr)
+library(broom)
+library(purrr)
 
 homicide <- read.csv('data/homicide-data.csv')
 
@@ -29,8 +31,14 @@ unsolved <- homicide %>%
   ungroup() %>% 
   rename(totalhomicides = n)
 
+baltimore <- unsolved %>% 
+  filter(cityname == 'Baltimore, MD') 
+  
+baltimore_prop <- prop.test(x = baltimore$totalunsolved,
+          n = baltimore$totalhomicides)
 
-
+baltimore_prop <- tidy(baltimore_prop)
+baltimore_prop
 
 
   
