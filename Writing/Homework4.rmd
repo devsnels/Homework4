@@ -53,7 +53,6 @@ Next, you will create a new dataset titled 'unsolved' that consists of three var
 
 unsolved <- homicide %>% 
   select(cityname, disposition) %>% 
-  mutate(disposition = factor(disposition)) %>% 
   group_by(cityname) %>% 
   mutate(totalhomicides = n()) %>% 
   mutate(totalunsolved = disposition == 'Closed without arrest'| disposition == 'Open/No arrest') %>% 
