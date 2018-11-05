@@ -9,4 +9,109 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Practice. 
+```{r libraries, include = FALSE}
+
+library(dplyr)
+library(stringr)
+library(tidyselect)
+library(ggplot2)
+library(rmarkdown)
+library(RColorBrewer)
+library(knitr)
+library(forcats)
+library(readr)
+library(tidyr)
+library(broom)
+library(purrr)
+library(scales)
+```
+
+**Background**
+The Washington Post collected data on more than 52,000 criminal homicides over the past decade in 50 of the largest American cities.The data included the location of the killing, whether an arrest was made and, in most cases, basic demographic information about each victim. This analysis will focus on the proportion of homicides that went unsolved.
+
+**Analysis**
+
+First, you need to read in the homicide dataset, which is in a CSV format.
+
+```{r readdata}
+
+homicide <- read.csv("/Users/devinnelson/Desktop/Homework4/Data/homicide-data.csv")
+
+```
+
+First you will have to combine the city and the state into a single variable using the `unite` function.
+
+```{r new variable}
+
+homicide <- homicide %>% 
+  unite(cityname, city, state, sep = ", ")
+```
+
+Next, you will create a new dataset titled 'unsolved' that consists of three variables: city name, total number of homicides, and total number of unsolved homicides with one row for each city.To do so, you need to create a new variable titled "totalunsolved" that is a true/false variable for the disposition finding. You can now use the sum function to count the number of "Trues". 
+
+```{r dataset unsolved}
+
+unsolved <- homicide %>% 
+  select(cityname, disposition) %>% 
+  mutate(disposition = factor(disposition)) %>% 
+  group_by(cityname) %>% 
+  mutate(totalhomicides = n()) %>% 
+  mutate(totalunsolved = disposition == 'Closed without arrest'| disposition == 'Open/No arrest') %>% 
+  mutate(totalunsolved = sum(totalunsolved)) %>% 
+  group_by(cityname, totalunsolved) %>% 
+  count() %>% 
+  ungroup() %>% 
+  rename(totalhomicides = n) 
+```
+
+In order to understand how to find the proportion of unsolved on all observations, it is helpful to practice on one. Therefore, 'Baltimore, MD' was pulled out to find the proportion using the `prop.test` and `tidy` functions.
+
+```{r prop baltimore}
+
+baltimore <- unsolved %>% 
+  filter(cityname == 'Baltimore, MD') 
+
+baltimore_prop <- prop.test(x = baltimore$totalunsolved,
+                            n = baltimore$totalhomicides)
+
+baltimore_prop <- tidy(baltimore_prop)
+
+baltimore_prop
+```
+
+
+Now that we have a better understanding of what the output of one observation looks like, it can be mapped to all of the observations using the `map` and `map2` functions, as shown below. Additionally, it can be placed into a ggplot to demonstrate all observations' proportions alongside the error bars.
+
+```{r mapping and plotting}
+
+unsolvedprop <- unsolved %>% 
+  mutate(result = map2(totalunsolved, totalhomicides,  ~ prop.test(.x, n = .y))) %>%
+  mutate(result = map(result, tidy)) %>% 
+  unnest(.drop = TRUE) %>% 
+  select(cityname, estimate, conf.low, conf.high) %>% 
+  filter(cityname != 'Tulsa, AL') %>% 
+  ggplot() +
+  geom_point(mapping = aes(x = estimate, y = reorder(cityname, estimate)), 
+             color = 'white') +
+  geom_errorbarh(mapping = aes(y = cityname, x = estimate, xmin = conf.low, xmax = conf.high), 
+                 color = 'white', 
+                 height = 0, 
+                 alpha = .5) +
+  scale_x_continuous(labels = percent, 
+                     breaks = c(.2,.3,.4,.5,.6,.7), 
+                     limits = c(0.2, 0.8),
+                     minor_breaks = c(.2,.3,.4,.5,.6,.7)) +
+  labs(x = 'Percent of homicides that are unsolved', y = '') +
+  ggtitle("Unsolved homicides by city", 
+          subtitle = "Bars show 95% confidence interval") +
+  theme_dark() 
+```
+
+
+**Final Plot**
+
+The final graph will look as follows:
+
+```{r final graph, echo = FALSE}
+unsolvedprop
+```
