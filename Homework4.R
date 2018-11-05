@@ -65,5 +65,5 @@ unsolvedprop <- unsolved %>%
   theme_dark() 
 
 
-View(unsolvedprop)
+unsolvedprop
   
