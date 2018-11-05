@@ -29,16 +29,34 @@ unsolved <- homicide %>%
   group_by(cityname, totalunsolved) %>% 
   count() %>% 
   ungroup() %>% 
-  rename(totalhomicides = n)
+  rename(totalhomicides = n) 
+
+unsolved
 
 baltimore <- unsolved %>% 
   filter(cityname == 'Baltimore, MD') 
-  
+
 baltimore_prop <- prop.test(x = baltimore$totalunsolved,
-          n = baltimore$totalhomicides)
+                            n = baltimore$totalhomicides)
 
 baltimore_prop <- tidy(baltimore_prop)
 baltimore_prop
+
+unsolved %>% 
+  mutate(result = map2(totalunsolved, totalhomicides,  ~ prop.test(.x, n = .y))) %>%
+  mutate(result = map(result, tidy)) %>% 
+  unnest(.drop = TRUE) %>% 
+  select(cityname, estimate, conf.low, conf.high) %>% 
+  filter(cityname != 'Tulsa, AL') %>% 
+  ggplot(mapping = aes(y = reorder(-estimate, cityname), y = estimate)) +
+  geom_point(mapping = aes(x = estimate, y = cityname), color = 'white') +
+  geom_errorbarh(mapping = aes(y = cityname, x = estimate, xmin = conf.low, xmax = conf.high), color = 'white', height = 0, alpha = .5) +
+  scale_x_continuous(labels = scales::percent) +
+  theme_dark()
+                         
+
+
+
 
 
   
