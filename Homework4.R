@@ -10,6 +10,7 @@ library(readr)
 library(tidyr)
 library(broom)
 library(purrr)
+library(scales)
 
 homicide <- read.csv('data/homicide-data.csv')
 

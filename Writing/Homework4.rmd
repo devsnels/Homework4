@@ -111,6 +111,6 @@ unsolvedprop <- unsolved %>%
 
 The final graph will look as follows:
 
-```{r final graph, echo = FALSE}
+```{r final graph, echo = FALSE, fig.height = 8}
 unsolvedprop
 ```
