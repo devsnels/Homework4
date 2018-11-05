@@ -47,15 +47,14 @@ unsolved %>%
   mutate(result = map(result, tidy)) %>% 
   unnest(.drop = TRUE) %>% 
   select(cityname, estimate, conf.low, conf.high) %>% 
-  filter(cityname != 'Tulsa, AL') %>% 
-  ggplot(mapping = aes(y = reorder(-estimate, cityname), y = estimate)) +
-  geom_point(mapping = aes(x = estimate, y = cityname), color = 'white') +
+  ggplot() +
+  geom_point(mapping = aes(x = estimate, y = reorder(cityname, estimate)), color = 'white') +
   geom_errorbarh(mapping = aes(y = cityname, x = estimate, xmin = conf.low, xmax = conf.high), color = 'white', height = 0, alpha = .5) +
-  scale_x_continuous(labels = scales::percent) +
+  scale_x_continuous(labels = percent, limits = c(0.2, 0.7)) +
   theme_dark()
                          
 
-
+?scale
 
 
 
